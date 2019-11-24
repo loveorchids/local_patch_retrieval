@@ -206,7 +206,6 @@ class LP_ReID_Dataset():
         #print(label)
         return imgs, label
 
-
 def retrieval_collector(batch):
     imgs, labels = [], []
     for i, (img, label) in enumerate(batch):
@@ -215,7 +214,6 @@ def retrieval_collector(batch):
     imgs = torch.cat(imgs, dim=0)
     labels = torch.cat(labels, dim=0)
     return imgs, labels
-
 
 def fetch_dataset(args, shuffle=True, verbose=False, for_test=False):
     dataset = LP_ReID_Dataset(args, dataset=args.train_sources, verbose=verbose)
@@ -243,13 +241,14 @@ def eliminate_empty_folder(remove_num_less_then=1, execute_deletion=False):
                         os.system(command)
                     else:
                         print(command)
+    print("Empty folder check finished.")
 
 if __name__ == '__main__':
     import time
     from lp_args import parse_arguments
     import omni_torch.utils as util
     import lp_preset as preset
-    #eliminate_empty_folder(remove_num_less_then=2, execute_deletion=True)
+    eliminate_empty_folder(remove_num_less_then=1, execute_deletion=False)
     args = parse_arguments()
     opt = util.get_args(preset.PRESET)
     args = util.cover_edict_with_argparse(opt, args)

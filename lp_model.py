@@ -4,20 +4,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 import omni_torch.networks.blocks as omth_blocks
 from itertools import combinations, product
+from lp_cfg import cfg
 
 class Encoder(nn.Module):
-    def __init__(self, args, batch_norm=None, channel=(32, 32, 32, 16, 16, 8, 8),
-                 kernel_size=(5, 3, 3, 3, 3, 3, 3), stride=(2, 1, 1, 1, 1, 1, 1),
-                 global_padding=(2, 0, 0, 0, 0, 0, 0), local_padding=(2, 0, 0, 0, 0, 0, 0)):
+    def __init__(self, args, batch_norm=None):
         super().__init__()
         self.args = args
         self.group = args.open_pose_joint_num
-        self.channels = channel
-        self.kernel_sizes = kernel_size
-        self.strides = stride
+        self.cfg = cfg[args.cfg_name]
+        self.channels = self.cfg["channel"]
+        self.kernel_sizes = self.cfg["kernel_size"]
+        self.strides = self.cfg["stride"]
         self.batch_norm = batch_norm
-        self.global_padding = global_padding
-        self.local_padding = local_padding
+        self.global_padding = self.cfg["global_padding"]
+        self.local_padding = self.cfg["local_padding"]
         self.feature_comb = args.feature_comb
 
         #self.global_feature_comparison = args.global_feature_comparison
@@ -45,13 +45,13 @@ class Encoder(nn.Module):
         self.global_embedding = args.global_embedding
         if self.global_embedding:
             self.dropout_050 = nn.Dropout(0.50)
-            self.fc_layer1 = nn.Linear(2176, 512)
+            self.fc_layer1 = nn.Linear(4352, 512)
             self.fc_layer2 = nn.Linear(512, 128)
         self.normalize_embedding = args.normalize_embedding
         self.loss = [lp_L1_Loss(), lp_L2_Loss(), lp_KL_divergence()]
-        self.comb_feature = CombFeature(channel[-1], self.group,
+        self.comb_feature = CombFeature(self.channels[-1], self.group,
                                         comb_method=self.feature_comb)
-        self.attn_module = Attn_Generator(channel[-1], self.group)
+        self.attn_module = Attn_Generator(self.channels[-1], self.group)
         #self.maxout = nn.MaxPool2d(kernel_size=2, stride=2, padding=0,
                                    #dilation=1, ceil_mode=True)
         self.create_global_conv()
@@ -191,7 +191,8 @@ class Encoder(nn.Module):
         if self.global_embedding:
             comb_feature = comb_feature.view(b, -1)
             comb_feature = self.fc_layer2(self.dropout_050(self.fc_layer1(comb_feature)))
-            comb_feature = F.softmax(comb_feature, dim=-1)
+            if self.args.normalize_embedding:
+                comb_feature = F.softmax(comb_feature, dim=-1)
         if test:
             return comb_feature, attn_map
         else:
@@ -311,7 +312,7 @@ if __name__ == '__main__':
 
     net = Encoder(args)
     net = torch.nn.DataParallel(net).cuda()
-    x = torch.rand(56 * 8, 51, 40, 40) * 256
+    x = torch.rand(56 * 9, 51, 40, 40) * 256
     x = x.cuda()
     #net = Piecewise_Compare()
     #x = torch.rand(56, 272, 6, 6)

@@ -88,6 +88,11 @@ def parse_arguments():
         type=int,
         default=4
     )
+    parser.add_argument(
+        "--cfg_name",
+        type=str,
+        default="default"
+    )
 
     args = parser.parse_args()
     return args

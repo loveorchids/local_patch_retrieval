@@ -28,7 +28,7 @@ def GeneralPattern(args):
 def Unique_Patterns(args):
     args.train_sources = "OP_local_patch"
     # This determines the length of dataset
-    args.batch_per_epoch = 500
+    args.batch_per_epoch = 100
 
     # Define composition of samples in a batch
     # 1 batch contains:
@@ -50,6 +50,7 @@ def Runtime_Patterns(args):
     args.normalize_embedding = False
     args.global_embedding = False
     args.loss_weight = ["l2"]
+    args.cfg_name = "default"
     return args
 
 
