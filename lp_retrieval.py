@@ -61,9 +61,9 @@ def main():
     for epoch in range(args.epoch_num):
         epoch_loss = fit(args, net, dataset, optimizer, is_train=True)
         TrainLoss.append(epoch_loss)
-        if (epoch + 1) % 20 == 0:
+        if (epoch + 1) % 100 == 0:
             util.save_model(args, args.curr_epoch, net.state_dict(), prefix=args.model_prefix,
-                            keep_latest=10)
+                            keep_latest=25)
         if epoch >= 5:
             # Train losses
             plot_loss = torch.stack(TrainLoss, dim=0).view(-1, 3, 3).permute(2, 1, 0).numpy()

@@ -135,11 +135,8 @@ class Encoder(nn.Module):
             l_r_attn_map = attn_map[self.definite_same[0]] * \
                            attn_map[self.definite_same[1]]
         l_tensor = comb_feature[self.definite_same[0]] * l_r_attn_map
-        try:
-            r_tensor = comb_feature[self.definite_same[1]] * l_r_attn_map
-        except:
-            xxx=0
-        loss += [5 * loss(l_tensor, r_tensor) for loss in self.loss]
+        r_tensor = comb_feature[self.definite_same[1]] * l_r_attn_map
+        loss += [loss(l_tensor, r_tensor) for loss in self.loss]
 
         # Calculate the distance of samples shall be same but maybe challenging
         if not self.global_embedding:
@@ -155,9 +152,9 @@ class Encoder(nn.Module):
                            attn_map[self.definite_diff[1]]
         l_tensor = comb_feature[self.definite_diff[0]] * l_r_attn_map
         r_tensor = comb_feature[self.definite_diff[1]] * l_r_attn_map
-        loss += [-2 * loss(l_tensor, r_tensor) for loss in self.loss]
+        loss += [-1 * loss(l_tensor, r_tensor) for loss in self.loss]
 
-        loss = torch.stack(loss) * self.loss_weight[comb_feature.device.index] * 100
+        loss = torch.stack(loss) * self.loss_weight[comb_feature.device.index]
         return loss
 
     def forward(self, x, verbose=False, test=False):
@@ -290,12 +287,14 @@ class lp_KL_divergence(nn.Module):
     def __init__(self):
         super().__init__()
         self.loss = nn.KLDivLoss(reduction="batchmean")
-        self.normalize = nn
+        self.normalize = nn.Softmax(dim=-1)
 
     def forward(self, x, y):
         embed_dim = x.shape[-1]
         x = x.view(-1, embed_dim)
         y = y.view(-1, embed_dim)
+        x = self.normalize(x)
+        y = self.normalize(y)
         loss = self.loss(x, y)
         return loss
 
