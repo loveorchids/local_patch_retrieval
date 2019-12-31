@@ -2,6 +2,8 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib
+matplotlib.use('Agg')
 import omni_torch.networks.blocks as omth_blocks
 from itertools import combinations, product
 from lp_cfg import cfg
